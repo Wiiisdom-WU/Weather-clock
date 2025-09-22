@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>比格犬天气预报员</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .weather-station {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+
+        .title {
+            font-size: 28px;
+            color: #2d3436;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .beagle-container {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .beagle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin: 0 auto;
+            background-image: url('beagle.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid #fff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .beagle:hover {
+            transform: scale(1.05);
+        }
+
+        .beagle.bounce {
+            animation: bounce 0.6s ease;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            60%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-20px);
+            }
+
+            80% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .weather-info {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(116, 185, 255, 0.1);
+            border-radius: 15px;
+            border-left: 5px solid #74b9ff;
+        }
+
+        .current-time {
+            font-size: 24px;
+            color: #2d3436;
+            margin-bottom: 10px;
+        }
+
+        .weather-report {
+            font-size: 18px;
+            color: #636e72;
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+
+        .mood-weather {
+            font-size: 22px;
+            color: #e17055;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .weather-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            background: #74b9ff;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .weather-btn:hover {
+            background: #0984e3;
+            transform: translateY(-2px);
+        }
+
+        .speech-bubble {
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+            color: #2d3436;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid white;
+        }
+
+        .speech-bubble.show {
+            opacity: 1;
+            top: -80px;
+        }
+
+        .floating-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .floating-element {
+            position: absolute;
+            font-size: 20px;
+            opacity: 0.7;
+            animation: float 6s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 0.7;
+            }
+
+            90% {
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="weather-station">
+        <h1 class="title">🐕 比格犬天气心情时钟</h1>
+
+        <div class="beagle-container">
+            <div class="beagle" id="beagle" onclick="playReport()"></div>
+            <div class="speech-bubble" id="speechBubble"></div>
+        </div>
+
+        <div class="weather-info">
+            <div class="current-time" id="currentTime"></div>
+            <div class="weather-report" id="weatherReport"></div>
+            <div class="mood-weather" id="moodWeather"></div>
+        </div>
+
+        <div class="controls">
+            <button class="weather-btn" onclick="changeWeather('sunny')">☀️ 晴朗</button>
+            <button class="weather-btn" onclick="changeWeather('cloudy')">☁️ 多云</button>
+            <button class="weather-btn" onclick="changeWeather('rainy')">🌧️ 下雨</button>
+            <button class="weather-btn" onclick="changeWeather('snowy')">❄️ 下雪</button>
+            <button class="weather-btn" onclick="changeWeather('stormy')">⛈️ 暴风雨</button>
+        </div>
+
+        <div class="floating-elements" id="floatingElements"></div>
+    </div>
+
+    <script>
+        const weatherData = {
+            sunny: {
+                filter: 'brightness(1.2) saturate(1.3)',
+                moods: [
+                    '今天心情阳光明媚！',
+                    '太阳公公出来啦，开心到飞起！',
+                    '阳光洒在身上暖洋洋的～',
+                    '今天的心情就像小太阳一样闪闪发光！',
+                    '晴空万里，心情也万里无云！'
+                ],
+                reports: [
+                    '汪汪！今天是个好天气，适合出去遛弯和玩耍！',
+                    '阳光这么好，不如我们去公园跑跑吧！',
+                    '今天的阳光特别温暖，适合晒太阳打盹～',
+                    '天气这么棒，我想去追蝴蝶！',
+                    '晴朗的天气让我想要一直摇尾巴！'
+                ],
+                speeches: [
+                    '汪！今天超级开心！',
+                    '太阳真暖和～',
+                    '出去玩吧！',
+                    '心情棒棒哒！',
+                    '今天真是好日子！',
+                    '阳光让我好舒服～'
+                ],
+                background: 'linear-gradient(135deg, #74b9ff, #0984e3)',
+                elements: ['☀️', '🌤️', '✨']
+            },
+            cloudy: {
+                filter: 'brightness(0.8) saturate(0.7)',
+                moods: [
+                    '心情有点阴沉沉的...',
+                    '今天想要慵懒地躺着',
+                    '云朵遮住了我的好心情',
+                    '有点想睡觉的天气呢',
+                    '灰蒙蒙的天让我也变得安静了'
+                ],
+                reports: [
+                    '今天云朵很多，比格犬想要躲在家里睡懒觉。',
+                    '天空灰灰的，正好适合在家里打盹。',
+                    '这种天气让我想要蜷缩在温暖的毯子里。',
+                    '云层厚厚的，感觉随时会下雨呢。',
+                    '阴天让我变得特别想要安静地待着。'
+                ],
+                speeches: [
+                    '嗯...想睡觉',
+                    '今天好安静',
+                    '躺平模式启动',
+                    '有点困困的',
+                    '安静地待会儿',
+                    '慵懒时光～'
+                ],
+                background: 'linear-gradient(135deg, #a29bfe, #6c5ce7)',
+                elements: ['☁️', '🌫️', '💭']
+            },
+            rainy: {
+                filter: 'brightness(0.9) saturate(1.1) hue-rotate(180deg)',
+                moods: [
+                    '淅淅沥沥的雨天心情',
+                    '雨滴声让我有点忧郁',
+                    '湿漉漉的天气不太喜欢',
+                    '雨天适合在窗边发呆',
+                    '听着雨声心情也变得柔软了'
+                ],
+                reports: [
+                    '下雨了！比格犬不喜欢湿湿的感觉，但喜欢听雨声。',
+                    '雨滴打在窗户上，我在屋里安全又温暖。',
+                    '虽然不能出去玩，但雨声很好听呢。',
+                    '下雨天最适合在家里和主人一起待着了。',
+                    '雨水冲洗着大地，空气变得特别清新。'
+                ],
+                speeches: [
+                    '不要淋湿我！',
+                    '雨声好听～',
+                    '在家里最安全',
+                    '湿湿的不舒服',
+                    '陪我待在家里吧',
+                    '雨天也有雨天的美好'
+                ],
+                background: 'linear-gradient(135deg, #81ecec, #00b894)',
+                elements: ['🌧️', '💧', '☔']
+            },
+            snowy: {
+                filter: 'brightness(1.1) saturate(0.5) contrast(1.2)',
+                moods: [
+                    '雪花纷飞的浪漫心情',
+                    '白雪皑皑让我兴奋不已',
+                    '冷是冷了点，但好美啊',
+                    '雪花像小精灵一样跳舞',
+                    '银装素裹的世界太神奇了'
+                ],
+                reports: [
+                    '下雪啦！比格犬想在雪地里打滚，但是好冷呀！',
+                    '雪花飘飘洒洒，我想要接住每一片雪花！',
+                    '白茫茫的雪地看起来好好玩，但爪子会冻住。',
+                    '雪人！我要和雪人一起玩耍！',
+                    '雪地里留下我的小脚印，多可爱呀！'
+                ],
+                speeches: [
+                    '好冷但好玩！',
+                    '雪花好漂亮～',
+                    '想要打雪仗！',
+                    '爪子冻住了',
+                    '雪地好神奇',
+                    '冷冷的但很开心'
+                ],
+                background: 'linear-gradient(135deg, #ddd6fe, #8b5cf6)',
+                elements: ['❄️', '⛄', '🌨️']
+            },
+            stormy: {
+                filter: 'brightness(0.6) saturate(0.8) contrast(1.3)',
+                moods: [
+                    '暴风雨让我有点害怕...',
+                    '雷声轰隆隆，好吓人',
+                    '闪电一闪一闪的，我要躲起来',
+                    '风好大，我被吹得站不稳',
+                    '这种天气让我想要找个安全的地方'
+                ],
+                reports: [
+                    '打雷闪电！比格犬要躲起来，这天气太吓人了！',
+                    '暴风雨来了，我要找个安全的角落躲着。',
+                    '雷声这么大，我的小心脏都要跳出来了！',
+                    '闪电照亮了天空，但我更想要温暖的怀抱。',
+                    '狂风暴雨中，只有主人的陪伴最安心。'
+                ],
+                speeches: [
+                    '好可怕呀！',
+                    '抱紧我！',
+                    '雷声太大了',
+                    '我要躲起来',
+                    '陪着我好吗',
+                    '这天气太吓人了'
+                ],
+                background: 'linear-gradient(135deg, #636e72, #2d3436)',
+                elements: ['⛈️', '⚡', '🌪️']
+            }
+        };
+
+        let currentWeather = 'sunny';
+
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        function getTimeBasedWeather() {
+            const hour = new Date().getHours();
+            if (hour >= 6 && hour < 12) return 'sunny';
+            if (hour >= 12 && hour < 18) return 'cloudy';
+            if (hour >= 18 && hour < 22) return 'rainy';
+            return 'stormy';
+        }
+
+        function getRandomItem(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+        function changeWeather(weather) {
+            currentWeather = weather;
+            const data = weatherData[weather];
+
+            const beagleElement = document.getElementById('beagle');
+            beagleElement.style.filter = data.filter;
+
+            // 随机选择语录
+            document.getElementById('weatherReport').textContent = getRandomItem(data.reports);
+            document.getElementById('moodWeather').textContent = getRandomItem(data.moods);
+            document.body.style.background = data.background;
+
+            createFloatingElements(data.elements);
+        }
+
+        function playReport() {
+            const beagle = document.getElementById('beagle');
+            const bubble = document.getElementById('speechBubble');
+
+            beagle.classList.add('bounce');
+            // 随机选择对话内容
+            bubble.textContent = getRandomItem(weatherData[currentWeather].speeches);
+            bubble.classList.add('show');
+
+            // 同时也随机更新天气报告和心情
+            const data = weatherData[currentWeather];
+            document.getElementById('weatherReport').textContent = getRandomItem(data.reports);
+            document.getElementById('moodWeather').textContent = getRandomItem(data.moods);
+
+            setTimeout(() => {
+                beagle.classList.remove('bounce');
+                bubble.classList.remove('show');
+            }, 2000);
+        }
+
+        function createFloatingElements(elements) {
+            const container = document.getElementById('floatingElements');
+            container.innerHTML = '';
+
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const element = document.createElement('div');
+                    element.className = 'floating-element';
+                    element.textContent = elements[Math.floor(Math.random() * elements.length)];
+                    element.style.left = Math.random() * 100 + '%';
+                    element.style.animationDelay = Math.random() * 2 + 's';
+                    container.appendChild(element);
+
+                    setTimeout(() => {
+                        element.remove();
+                    }, 6000);
+                }, i * 800);
+            }
+        }
+
+        // 初始化
+        function init() {
+            updateTime();
+            setInterval(updateTime, 1000);
+
+            // 根据时间自动设置天气
+            const timeWeather = getTimeBasedWeather();
+            changeWeather(timeWeather);
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
