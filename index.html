@@ -423,11 +423,10 @@
             const bubble = document.getElementById('speechBubble');
 
             beagle.classList.add('bounce');
-            // 随机选择对话内容
+
             bubble.textContent = getRandomItem(weatherData[currentWeather].speeches);
             bubble.classList.add('show');
 
-            // 同时也随机更新天气报告和心情
             const data = weatherData[currentWeather];
             document.getElementById('weatherReport').textContent = getRandomItem(data.reports);
             document.getElementById('moodWeather').textContent = getRandomItem(data.moods);
@@ -458,12 +457,10 @@
             }
         }
 
-        // 初始化
         function init() {
             updateTime();
             setInterval(updateTime, 1000);
 
-            // 根据时间自动设置天气
             const timeWeather = getTimeBasedWeather();
             changeWeather(timeWeather);
         }
@@ -473,3 +470,4 @@
 </body>
 
 </html>
+
